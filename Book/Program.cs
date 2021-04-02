@@ -12,7 +12,7 @@ namespace Book
             Author author;            
             try
             {
-                string[] temp = fileWorker.Load(path);
+                string[] temp = fileWorker.Load(path, true);
                 author = new Author(temp[0], temp[1], DateTime.ParseExact(temp[2], "d.m.yyyy", CultureInfo.InvariantCulture));
             }
             catch(LackOfData)
@@ -36,7 +36,7 @@ namespace Book
             Book book;
             try
             {
-                string[] temp = fileWorker.Load(path);
+                string[] temp = fileWorker.Load(path, false);
                 string correct = temp[3].Trim();
                 book = new Book(
                     temp[0],
