@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Book
 {
-    class Book
+     public class Book
     {
         public string Name { get; set; }
         public int Pages { get; set; }
@@ -23,7 +21,11 @@ namespace Book
         }
         public override string ToString()
         {
-            return string.Format("Name of book: \t{0}\nNumber of pages: \t{1}\nPublisher: \t{2}\nDate of publishing: \t{3}\nDate of writing: \t{4}", Name, Pages, Publisher, DateOfPublishing, DateOfWriting);
+            return $"Name of book:          \t{Name}" +
+                $"{Environment.NewLine}Number of pages: \t{Pages}" +
+                $"{Environment.NewLine}Publisher:       \t{Publisher}" +
+                $"{Environment.NewLine}Date of publishing: \t{DateOfPublishing.ToLongDateString()}" +
+                $"{Environment.NewLine}Date of writing: \t{DateOfWriting.ToLongDateString()}";
         }
     }
 }

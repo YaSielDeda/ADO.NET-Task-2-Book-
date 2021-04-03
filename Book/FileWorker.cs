@@ -29,7 +29,7 @@ namespace Book
             }
             if (rawData.Length < 3)
             {
-                throw new LackOfData("Lack of data! Some data may absent or written in one line");
+                throw new InvalidAuthorException("Lack of data! Some data may absent or written in one line");
             }
             if (isIntName || isIntSecondname)
             {

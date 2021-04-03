@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Book
 {
-    class Author
+    public class Author
     {
         public string Name { get; set; }
         public string Secondname { get; set; }
@@ -18,8 +18,9 @@ namespace Book
         }
         public override string ToString()
         {
-            return string.Format("Name of author: \t{0}\nSecondname of author: \t{1}\nDate of birth: \t{2}", Name, Secondname, DateOfBirth);
+            return $"Name of author: \t{Name}" +
+                $"{Environment.NewLine}Secondname of author: \t{Secondname}" +
+                $"{Environment.NewLine}Date of birth:         \t{DateOfBirth.ToLongDateString()}";
         }
     }
-
 }
