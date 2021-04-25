@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using static Book.Exceptions;
 
 namespace Book
@@ -12,36 +13,57 @@ namespace Book
     {
         public Book GetBook(string path)
         {
-            var bookFromFile = GetBookFromFile(path);
-            var result = ParseBook(bookFromFile);
-            return result;
+            var bookFileModel = GetBookFromFile(path);
+            if (AuthorValidation(bookFileModel.Author.Name, bookFileModel.Author.Secondname))
+                return new Book(
+                    bookFileModel.Name,
+                    int.Parse(bookFileModel.Pages),
+                    bookFileModel.Publisher,
+                    DateTime.ParseExact(bookFileModel.DateOfPublishing, "yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    DateTime.ParseExact(bookFileModel.DateOfWriting, "yyyy-MM-dd", CultureInfo.InvariantCulture),
+                        new Author(
+                            bookFileModel.Author.Name,
+                            bookFileModel.Author.Secondname,
+                            DateTime.ParseExact(bookFileModel.Author.DateOfBirth, "yyyy-MM-dd", CultureInfo.InvariantCulture)
+                            )
+                    );
+            else
+                throw new Exception("Author error!");
         }
-
-        private string[] GetBookFromFile(string path)
+        public BookFileModel GetBookFromFile(string path)
         {
-            var lines = File.ReadLines(path).ToArray();
-            if (lines.Length < 3)
+            string jsonString = null;
+            using (StreamReader fs = new StreamReader(path))
             {
-                throw new InvalidBookException("Lack of data! Some data may absent or written in one line");
+                jsonString = fs.ReadLine();
             }
-            return lines;
-        }
-
-        private Book ParseBook(string[] bookFromFile)
-        {
-            DateTime DateOfPublishing = new DateTime();
-            DateTime DateOfWriting = new DateTime();
+            BookFileModel book = null;            
             try
             {
-                int.Parse(bookFromFile[1]);
-                DateOfPublishing = DateTime.ParseExact(bookFromFile[3].Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture);
-                DateOfWriting = DateTime.ParseExact(bookFromFile[4].Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                book = JsonSerializer.Deserialize<BookFileModel>(jsonString);
             }
-            catch (FormatException)
+            catch
             {
-                throw new FormatException("Invalid data!");
+                throw new FileNotFoundException("JSON file is missing!");
             }
-            return new Book(bookFromFile[0], int.Parse(bookFromFile[1]), bookFromFile[2], DateOfPublishing, DateOfWriting);
+            return book;
+        }
+        private bool AuthorValidation(string name, string secondname)
+        {
+            char[] ViolatedSymbols = new char[] {
+                '.', ',', '!', '@', '#', '№', '$', ';', '%', '^',
+                ':', '&', '?', '*', '(', ')', '-', '_', '=', '+',
+                '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+
+            foreach (var s in ViolatedSymbols)
+            {
+                if (name.Contains(s) || secondname.Contains(s))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

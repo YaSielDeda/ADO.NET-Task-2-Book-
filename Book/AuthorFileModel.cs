@@ -12,6 +12,7 @@ namespace Book
             Secondname = secondname;
             DateOfBirth = dateOfBirth;
         }
+        public AuthorFileModel() { }
         public string Name { get; set; }
         public string Secondname { get; set; }
         public string DateOfBirth { get; set; }

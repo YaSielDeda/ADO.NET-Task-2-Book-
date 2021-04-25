@@ -3,49 +3,55 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using static Book.Exceptions;
 
 namespace Book 
-{
+{   
     public class AuthorWorker
     {
         public Author GetAuthor(string path)
         {
-            var authorFromFile = GetAuthorFromFile(path);
-            var result = ParseAuthor(authorFromFile);
-            return result;
+            var authorFileModel = GetAuthorFromFile(path);
+            if (AuthorValidation(authorFileModel.Name, authorFileModel.Secondname))
+                return new Author(authorFileModel.Name, authorFileModel.Secondname, DateTime.ParseExact(authorFileModel.DateOfBirth, "yyyy-MM-dd", CultureInfo.InvariantCulture));
+            else
+                throw new Exception("Author error!");
         }
-
-        private AuthorFileModel GetAuthorFromFile(string path)
+        public AuthorFileModel GetAuthorFromFile(string path)
         {
-            var lines = File.ReadLines(path).ToArray();
-            if (lines.Length != 3)
+            string jsonString = null;
+            using (StreamReader fs = new StreamReader(path))
             {
-                throw new InvalidAuthorException("Lack of data! Some data may absent or written in one line");
+                jsonString = fs.ReadLine();
             }
-            var result =  new AuthorFileModel(lines[0], lines[1], lines[2]);
-
-            return result;
-        }
-
-        private Author ParseAuthor(AuthorFileModel authorFromFile)
-        {
-            DateTime dateTime = new DateTime();
-            if (int.TryParse(authorFromFile.Name, out var _)
-                || int.TryParse(authorFromFile.Secondname, out var _))
-            {
-                throw new FormatException("Name/Secondname can't be a number!");
-            }
+            AuthorFileModel author = null;
             try
             {
-                dateTime = DateTime.ParseExact(authorFromFile.DateOfBirth.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture);
+                author = JsonSerializer.Deserialize<AuthorFileModel>(jsonString);
             }
-            catch(FormatException)
+            catch
             {
-                throw new FormatException("Invalid date time");
+                throw new FileNotFoundException("JSON file is missing!");
             }
-            return new Author(authorFromFile.Name, authorFromFile.Secondname, dateTime);
+            return author;
+        }
+        private bool AuthorValidation(string name, string secondname)
+        {
+            char[] ViolatedSymbols = new char[] { 
+                '.', ',', '!', '@', '#', '№', '$', ';', '%', '^',
+                ':', '&', '?', '*', '(', ')', '-', '_', '=', '+',
+                '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+
+            foreach (var s in ViolatedSymbols)
+            {
+                if (name.Contains(s) || secondname.Contains(s))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
-
 }
